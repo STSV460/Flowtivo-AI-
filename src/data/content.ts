@@ -1,6 +1,6 @@
 export const email = 'pvshariharan324@gmail.com';
-// Set logoPath to your uploaded PNG. The original asset will appear on a light pill.
-export const brand = { name: 'Flowtivo AI', tagline: 'Less Busywork. More Business.', logoPath: '/flowtivo-logo.png' };
+// Approved transparent logo with white lettering for dark backgrounds.
+export const brand = { name: 'Flowtivo AI', tagline: 'Less Busywork. More Business.', logoPath: '/flowtivo-logo-dark.png' };
 export const services = [
  { icon: 'compass', title: 'AI Strategy & Roadmap', description: 'Turn AI ambition into a practical, prioritized plan.', problem: 'Too many tools. No clear starting point.', build: 'An opportunity map and phased implementation roadmap aligned with your business priorities.', features: ['Stakeholder discovery', 'Opportunity scoring', '90-day action plan'], outcome: 'A clear investment case and a shared direction.' },
  { icon: 'scan', title: 'AI Readiness Audit', description: 'Find the friction. Size the opportunity.', problem: 'You know work could be faster, but not where to begin.', build: 'A focused assessment of your processes, data quality and technology stack.', features: ['Process mapping', 'Data and access review', 'ROI baseline'], outcome: 'A shortlist of feasible, high-value use cases.' },

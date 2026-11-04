@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useState } from 'react';
 import { FileText, BrainCircuit, GitPullRequestArrow, ChartNoAxesCombined, Bell, Play, RotateCcw, Check } from 'lucide-react';
 const nodes=[{icon:FileText,title:'Request received',sub:'One simple trigger'},{icon:BrainCircuit,title:'AI reads documents',sub:'Context, understood'},{icon:GitPullRequestArrow,title:'Approval routed',sub:'People stay in control'},{icon:ChartNoAxesCombined,title:'Report generated',sub:'The details, handled'},{icon:Bell,title:'Team notified',sub:'Everyone in the loop'}];

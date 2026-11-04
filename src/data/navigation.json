@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "label": "Services",
+      "id": "services"
+    },
+    {
+      "label": "Process",
+      "id": "process"
+    },
+    {
+      "label": "Pipelines",
+      "id": "pipelines"
+    },
+    {
+      "label": "About",
+      "id": "about"
+    },
+    {
+      "label": "Contact",
+      "id": "contact"
+    }
+  ],
+  "aliases": {
+    "/services": "services",
+    "/solutions": "solutions",
+    "/process": "process",
+    "/pipelines": "pipelines",
+    "/about": "about",
+    "/team": "about",
+    "/projects": "pipelines",
+    "/contact": "contact",
+    "/metrics": "impact",
+    "/tools": "tools"
+  }
+}

@@ -1,13 +1,62 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { BrowserRouter, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { ParticleBackground } from './components/ParticleBackground';
+import { BookingProvider } from './components/BookingProvider';
 import { Navbar, Footer } from './components/shared';
-import { Home, Services, Solutions, About, Team, Projects, Contact, NotFound } from './pages';
-import { ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-const pageNames:Record<string,string>={'/':'Less Busywork. More Business.','/services':'AI Services','/solutions':'Flagship Solutions','/about':'About Us','/team':'Our Team','/projects':'Illustrative Projects','/contact':'Book a Free Strategy Call'};
-function RouteEffects(){const{pathname,hash}=useLocation();useEffect(()=>{document.title=`Flowtivo AI — ${pageNames[pathname]||'Page Not Found'}`;if(hash){requestAnimationFrame(()=>document.getElementById(hash.slice(1))?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));}else{window.scrollTo({top:0,behavior:'instant'});}document.getElementById('main-content')?.focus({preventScroll:true});},[pathname,hash]);return null;}
-function Site(){return <><RouteEffects/><a className="skip-link" href="#main-content">Skip to content</a><div id="top"/><ParticleBackground/><Navbar/><main id="main-content" tabIndex={-1}><Routes><Route path="/" element={<Home/>}/><Route path="/services" element={<Services/>}/><Route path="/solutions" element={<Solutions/>}/><Route path="/about" element={<About/>}/><Route path="/team" element={<Team/>}/><Route path="/projects" element={<Projects/>}/><Route path="/contact" element={<Contact/>}/><Route path="*" element={<NotFound/>}/></Routes></main><Footer/><Link className="floating-call" to="/contact"><span className="live-dot"/>Book a Call<ArrowUpRight size={15}/></Link><Toaster theme="dark" position="bottom-left" richColors closeButton/></>;}
-export default function App({initialPath='/'}:{initialPath?:string}){const[mounted,setMounted]=useState(false);useEffect(()=>setMounted(true),[]);return mounted?<BrowserRouter><Site/></BrowserRouter>:<MemoryRouter initialEntries={[initialPath]}><Site/></MemoryRouter>;}
+import { Home, NotFound } from './pages';
+import seo from './data/seo.json';
+import navigation from './data/navigation.json';
+
+function RouteEffects() {
+  const { pathname, hash, key } = useLocation();
+  useEffect(() => {
+    const page = (seo as Record<string, { title: string; description: string }>)[pathname];
+    document.title = page?.title || 'Page Not Found | Flowtivo AI';
+    const description = page?.description || 'Explore Flowtivo AI.';
+    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+      document.querySelector(selector)?.setAttribute('content', description);
+    }
+    for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) {
+      document.querySelector(selector)?.setAttribute('content', document.title);
+    }
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', new URL(pathname, location.origin).href);
+    if (hash) {
+      const frame = requestAnimationFrame(() => {
+        let id: string;
+        try { id = decodeURIComponent(hash.slice(1)); } catch { return; }
+        const target = document.getElementById(id);
+        if (!target) return;
+        target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+        target.focus({ preventScroll: true });
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname, hash, key]);
+  return null;
+}
+
+function LegacySection() {
+  const { pathname, search, hash } = useLocation();
+  const id = (navigation.aliases as Record<string, string>)[pathname];
+  return id ? <Navigate replace to={`/${search}${hash || `#${id}`}`} /> : <NotFound />;
+}
+
+function Site() {
+  return <>
+    <RouteEffects />
+    <a className="skip-link" href="#main-content">Skip to content</a>
+    <div id="top" tabIndex={-1} />
+    <Navbar />
+    <main id="main-content" tabIndex={-1}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<LegacySection />} />
+      </Routes>
+    </main>
+    <Footer />
+    <Toaster theme="dark" position="bottom-left" richColors closeButton />
+  </>;
+}
+
+export default function App() { return <BrowserRouter><BookingProvider><Site /></BookingProvider></BrowserRouter>; }

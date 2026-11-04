@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useRef } from 'react';
 // Custom canvas alternative to tsParticles: bounded point count, one RAF, paused off-tab.
 export function ParticleBackground() {
