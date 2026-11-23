@@ -95,18 +95,20 @@ function OrbitScene({running,onHoverChange}:{running:boolean,onHoverChange:(hove
 
 export function ToolStack() {
   const sectionRef=useRef<HTMLElement>(null);
-  const [visible,setVisible]=useState(false),[pageVisible,setPageVisible]=useState(!document.hidden);
+  const [visible,setVisible]=useState(false),[pageVisible,setPageVisible]=useState(true);
+  const [enhanced,setEnhanced]=useState(false);
   const [paused,setPaused]=useState(false),[hovered,setHovered]=useState(false);
   const reduced=Boolean(useReducedMotion());
   useEffect(()=>{
+    setEnhanced(true);
     const observer=new IntersectionObserver(([entry])=>setVisible(entry.isIntersecting),{threshold:.05});observer.observe(sectionRef.current!);
-    const visibility=()=>setPageVisible(!document.hidden);document.addEventListener('visibilitychange',visibility);
+    const visibility=()=>setPageVisible(!document.hidden);visibility();document.addEventListener('visibilitychange',visibility);
     return()=>{observer.disconnect();document.removeEventListener('visibilitychange',visibility);};
   },[]);
   const running=visible&&pageVisible&&!paused&&!hovered&&!reduced;
   return <section ref={sectionRef} id="tools" tabIndex={-1} className="container tools-section anchor-target" aria-labelledby="tools-heading">
     <div className="tools-heading"><span className="eyebrow">OUR TOOLKIT</span><h2 id="tools-heading">The right tools.<br/><span className="gradient-text">One connected system.</span></h2><p>Automation, AI, data and development—brought together around the way your business works.</p></div>
-    <div className="tool-animation-controls">{!reduced&&<button type="button" aria-pressed={paused} aria-label={paused?'Resume toolkit animation':'Pause toolkit animation'} onClick={()=>setPaused(value=>!value)}>{paused?<Play size={13}/>:<Pause size={13}/>}<span>{paused?'Resume':'Pause'}</span></button>}</div>
+    <div className="tool-animation-controls">{(!enhanced||!reduced)&&<button type="button" aria-pressed={paused} aria-label={paused?'Resume toolkit animation':'Pause toolkit animation'} onClick={()=>setPaused(value=>!value)}>{paused?<Play size={13}/>:<Pause size={13}/>}<span>{paused?'Resume':'Pause'}</span></button>}</div>
     <OrbitScene running={running} onHoverChange={setHovered}/>
     <ul className="tool-legend" aria-label="Tools we work with">{tools.map(tool=><li key={tool.slug}>{tool.name}</li>)}</ul>
   </section>;

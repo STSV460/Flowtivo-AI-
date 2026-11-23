@@ -6,3 +6,7 @@ data
 !.env.example
 *.log
 .DS_Store
+.seo-build
+.vercel
+.netlify
+strix_runs

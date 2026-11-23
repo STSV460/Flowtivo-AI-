@@ -30,11 +30,11 @@ export function Hero() {
   return <section className="hero" aria-labelledby="hero-heading">
     <div className="container hero-layout">
       <Reveal immediate className="hero-copy">
-        <span className="eyebrow">AI FOR THE MID-MARKET · 50–500 EMPLOYEES</span>
+        <span className="eyebrow">FLOWTIVO AI · ENTERPRISE AI AUTOMATION</span>
         <h1 id="hero-heading">Less busywork.<br/>More business.<br/><span className="gradient-text">Powered by AI.</span></h1>
-        <p>Custom AI assistants, connected workflows and client intelligence. Built around your people, your tools and the way your business works.</p>
-        <div className="hero-actions"><CallButton/><Link className="button button-outline" to="/#services">Explore our Services<ArrowRight size={17}/></Link></div>
-        <div className="hero-note"><ShieldCheck size={15}/><span>Your data. Your systems. No in-house AI team needed.</span></div>
+        <p>Custom AI automation, internal assistants, and resilient workflow integration for enterprise operations. Engineered around your existing systems with human-in-the-loop control.</p>
+        <div className="hero-actions"><CallButton>Schedule an Enterprise Consultation</CallButton><Link className="button button-outline" to="/#services">Explore Enterprise Solutions<ArrowRight size={17}/></Link></div>
+        <div className="hero-note"><ShieldCheck size={15}/><span>Department discovery · Scoped pilot validation · Human-in-the-loop governance</span></div>
       </Reveal>
       <FlowCore/>
     </div>

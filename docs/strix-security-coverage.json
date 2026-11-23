@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-09 07:16:06 UTC",
+  "run_id": "source-complete_614a",
+  "summary": {
+    "surfaces_reviewed": 17,
+    "outcomes": {
+      "no_issue_found": 11,
+      "ruled_out": 3,
+      "not_applicable": 1,
+      "needs_follow_up": 2
+    },
+    "findings_filed": 0,
+    "gaps": 2
+  },
+  "completeness": {
+    "complete": true,
+    "scan_status": "completed",
+    "exit_reason": "finished_by_tool",
+    "caveats": []
+  },
+  "gaps": [
+    {
+      "kind": "needs_follow_up",
+      "surface": "production edge / SMTP provider / container deployment behavior",
+      "risk_area": "deployment-only enforcement and delivery behavior",
+      "detail": "Only supplied source and127.0.0.1 runtime are authorized. Real Vercel edge headers/normalization,provider SMTP/TLS/delivery and Fillout embedding were not contacted; no container engine available and Docker builds not attempted. Source config and synthetic SMTP tests do not establish those production behaviors."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "Vercel production forwarded-address rewriting and streaming request deadlines",
+      "risk_area": "Deployment resource-control validation",
+      "detail": "Local tests establish parser/limiter/SMTP controls but cannot verify production edge overwrites X-Forwarded-For or enforces maxDuration60 for stalled Web body streams; handler itself awaits body input without a separate timer. Production-only behavior intentionally untested under localhost-only scope; no application DoS or header-trust bypass proven and intended per-instance quota is not a flaw."
+    }
+  ],
+  "reviewed_surfaces": [
+    {
+      "surface": "complete snapshot package scripts / npm ci / build / test / seo:check",
+      "outcome": "no_issue_found",
+      "evidence": "Verified actual src/data/seo.json and src/data/content.ts; complete disposable copy npm ci exit0 (172 packages/16s), npm run build exit0 (3s), npm test exit0 (24/24 pass), npm run seo:check exit0 (6/6 pass), Node24.18.0/npm11.16.0. No fabricated fixtures or supplied-source edits; test actual HTTP/SMTP destinations inspected as 127.0.0.1."
+    },
+    {
+      "surface": "server/app.mjs serveStatic and built dist private-file isolation",
+      "outcome": "ruled_out",
+      "evidence": "server/app.mjs:34-37 resolves only beneath dist, enforces root+separator containment and rejects dot-prefixed decoded segments before stat/read; no public symlinks in supplied content. 36 loopback requests with real private SQLite outside dist: 4 public controls200,29 private/traversal404,1 malformed400,2 unsupported405; encoded/double-encoded,backslash,null,source/config/env/database paths disclosed no private data."
+    },
+    {
+      "surface": "scripts/build-pages.mjs / src/main.tsx / src/App.tsx / src/components/ContactForm.tsx",
+      "outcome": "no_issue_found",
+      "evidence": "Build-time content provenance traced to supplied developer-controlled src/data; metadata escape at scripts/build-pages.mjs:8,JSON-LD '<' escaping:16,SSR React render:67. URL department allowlist ContactForm:6-7, hash only getElementById App:23-29, text/attribute DOM APIs not HTML. Guarded local Chromium checked canonical root, valid department, malicious query/hash,encoded script pathname: no payload execution,external requests,or booking iframes; valid 1 JSON-LD graph and404 no schema. Additional hydration-root evidence captured."
+    },
+    {
+      "surface": "package-lock.json and disposable npm ci installed dependency tree",
+      "outcome": "no_issue_found",
+      "evidence": "Actual npm ci succeeded without modifying lockfile; npm audit --json --registry=https://registry.npmjs.org exit0 and metadata reports0 vulnerabilities all severities. npm ls --all --json captured installed tree; audit metadata255 total reflects lockfile optional/platform entries, installation added172 packages. Offline Trivy vulnerability scan unavailable: no cached vulnerability DB,downloads intentionally disabled."
+    },
+    {
+      "surface": "Dockerfile / .dockerignore / .gitignore / .vercelignore / vercel.json / vite.config.ts",
+      "outcome": "no_issue_found",
+      "evidence": "Reviewed config: Vercel serves dist and packages server contact function; private root data and .env* excluded by ignore files. Docker final stage copies explicit runtime components/dist,stores SQLite outside app under /data,and runs USER node. Actual built dist has no database,server source,.env or source maps; all81 supplied files match disposable copy. Embedded offline Trivy flags only missing Docker HEALTHCHECK (DS-0026,LOW),not a proved security consequence."
+    },
+    {
+      "surface": "supplied source source-aware SAST / structural mapping / secrets",
+      "outcome": "no_issue_found",
+      "evidence": "Offline local3-rule Semgrep scanned38 JS/TS files:49 matches (45 boundary inventory,4 SQLite exec calls using constant transaction/schema SQL,0 raw HTML sinks); semgrep-scoped sg mapping retained. Gitleaks8.30.1 scanned~221KB supplied snapshot and found0 leaks. No Git history exists by design. No registry rules fetched; source scan rerun with version checks disabled and dead-loopback proxies after detecting default tool update metadata requests."
+    },
+    {
+      "surface": "production edge / SMTP provider / container deployment behavior",
+      "outcome": "needs_follow_up",
+      "evidence": "Only supplied source and127.0.0.1 runtime are authorized. Real Vercel edge headers/normalization,provider SMTP/TLS/delivery and Fillout embedding were not contacted; no container engine available and Docker builds not attempted. Source config and synthetic SMTP tests do not establish those production behaviors."
+    },
+    {
+      "surface": "server/vercel-contact.mjs and server/contact.mjs POST /api/contact",
+      "outcome": "no_issue_found",
+      "evidence": "Disposable-copy tests passed67 invalid field/type/enum/honeypot/consent/email cases and legitimate limits. Actual localhost Web Request HTTP adapter rejected malformed JSON400, simple non-JSON415, oversized streamed body413; exact16000-byte valid JSON accepted, cancellation/read errors/deep nesting safely handled. Artifacts flowtivo-contact/contact-security.test.mjs and contact-security.tap."
+    },
+    {
+      "surface": "server/mail.mjs enquiryEmail through Vercel POST /api/contact",
+      "outcome": "ruled_out",
+      "evidence": "Zod validates email at contact.mjs5; mail.mjs26 flattens CRLF in name/company before headers40-41, fixed recipient39 and schema-stripped extra envelope/to/header/attachment properties prevent redirection on both handler paths. Local SMTP wire tests and captured requests176-178 confirmed only fixed recipient, no injected Bcc/Cc, rejected email CRLF400, all visitor HTML escaped by mail.mjs25/36 and file/URL access disabled45."
+    },
+    {
+      "surface": "server/vercel-contact.mjs burst limiter and SMTP execution",
+      "outcome": "no_issue_found",
+      "evidence": "12 concurrent loopback HTTP requests with actual delayed SMTP produced exactly5 successful sends/peak5 sockets and7 HTTP429 with Retry-After; window/capacity fail-closed, failed-send charging and address64-character cap passed. 16000-byte streaming cap independently tested; actual default SMTP greeting timeout returned503 after10006ms and requireTLS rejected plaintext sink. Limited concurrency is not a production load or DoS test; intended instance-local scope not treated as global-quota flaw."
+    },
+    {
+      "surface": "POST /api/contact origin and browser request semantics",
+      "outcome": "no_issue_found",
+      "evidence": "Actual localhost adapter rejected foreign/null Origin403, simple text/plain/form/multipart415, OPTIONS405 and returned no CORS permission; no cookies/session or victim-bound action in contact path. Same-host different-scheme Origin and application/jsonjunk are accepted, but no unauthorized ambient-authority action was demonstrated; public unauthenticated form accepts missing Origin intentionally."
+    },
+    {
+      "surface": "server/contact.mjs SQLite persistence",
+      "outcome": "ruled_out",
+      "evidence": "Prepared placeholders contact.mjs25-29 with values bound at75-76 precede every contact persistence sink; BEGIN IMMEDIATE73/COMMIT77/ROLLBACK78 encloses inquiry and queue writes. Loopback test stored SQL/template/shell/XML-looking text literally and forced queue insertion failure via disposable SQLite trigger; response503 with no extra inquiry row confirmed rollback."
+    },
+    {
+      "surface": "server/mail.mjs createMailQueue",
+      "outcome": "no_issue_found",
+      "evidence": "Eight concurrent flushes produced one initial send via shared running promise mail.mjs88 and atomic status claim57-58. Actual SQLite tests forced six send failures, verified attempts6/finalfailed/no additional send, and sanitized50-character codes only; failed queue insertion rolled back inquiry. This checks single-process queue semantics and atomic row claim, not deployed multi-process failure recovery."
+    },
+    {
+      "surface": "Contact request-to-mail and persistence paths",
+      "outcome": "not_applicable",
+      "evidence": "Source trace from api/contact.mjs through vercel-contact.mjs/contact.mjs reaches only JSON/Zod, operator-configured SMTP and parameterized SQLite; visitor URLs are inert escaped body text and mail.mjs45 disables URL/file attachments. No XML parser, eval/template execution, command runner, attacker-selected outbound host, user/tenant identity or public read-object route exists in these contact paths; SMTP host/from are operator-only."
+    },
+    {
+      "surface": "Vercel production forwarded-address rewriting and streaming request deadlines",
+      "outcome": "needs_follow_up",
+      "evidence": "Local tests establish parser/limiter/SMTP controls but cannot verify production edge overwrites X-Forwarded-For or enforces maxDuration60 for stalled Web body streams; handler itself awaits body input without a separate timer. Production-only behavior intentionally untested under localhost-only scope; no application DoS or header-trust bypass proven and intended per-instance quota is not a flaw."
+    },
+    {
+      "surface": "Standalone Node HTTP server contact streaming controls",
+      "outcome": "no_issue_found",
+      "evidence": "Actual createApp bound127.0.0.1 with in-memory SQLite/synthetic mail:3 partial16000-byte-declared bodies held150ms while homepage200 and separate valid contact201; clients then explicitly destroyed. Chunked24000-byte request returned413, source retains at most16000bytes(contact.mjs49-54), runtime configured requestTimeout15000/headersTimeout10000(app.mjs77-78). Test did not establish production timeout enforcement or a full-load availability bound."
+    },
+    {
+      "surface": "contact-security.test.mjs independent complete replay against supplied server code",
+      "outcome": "no_issue_found",
+      "evidence": "Independently reviewed harness and SMTP wire, compared server/package copies to supplied snapshot,then reran full12-test suite (all pass,11s). Fixed recipient/single visitor Reply-To,no injected cc/bcc,escaped HTML,67 invalid fields,16KB cap/cancel,TLS failure and10.005s greeting503;12concurrent requests yielded exactly5SMTP sends/201 and7HTTP429,queue8parallel flush singleclaim/retries6cap. Partial bodies100/150ms did not block healthy traffic; no demonstrated DoS or global-quota bug. Log flowtivo-evidence/contact-independent.tap."
+    }
+  ]
+}

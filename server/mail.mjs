@@ -1,11 +1,12 @@
 import nodemailer from 'nodemailer';
+import site from '../src/data/site.json' with { type:'json' };
 
-export const CONTACT_RECIPIENT = 'pvshariharan324@gmail.com';
+export const CONTACT_RECIPIENT = site.email;
 
 export function readMailConfig(env = process.env) {
   const host = env.SMTP_HOST || 'smtp.gmail.com';
   const port = Number(env.SMTP_PORT || 465);
-  const user = env.SMTP_USER || CONTACT_RECIPIENT;
+  const user = env.SMTP_USER || 'pvshariharan324@gmail.com';
   const password = host === 'smtp.gmail.com' ? (env.SMTP_PASS || '').replace(/\s/g, '') : (env.SMTP_PASS || '');
   return {
     enabled: Boolean(user && password),
@@ -27,21 +28,32 @@ const singleLine = value => String(value).replace(/[\r\n]+/g, ' ');
 
 export function enquiryEmail(inquiry, from) {
   const fields = [
-    ['Full name', inquiry.name], ['Work email', inquiry.email],
-    ['Phone', inquiry.phone || 'Not provided'], ['Company', inquiry.company],
-    ['Company size', `${inquiry.company_size} employees`], ['Department', inquiry.department],
-    ['Message', inquiry.message], ['Consent', 'Granted'],
-    ['Received (UTC)', inquiry.created_at], ['Enquiry reference', inquiry.id],
+    ['Full name', inquiry.name],
+    ['Work email', inquiry.email],
+    ['Phone', inquiry.phone || 'Not provided'],
+    ['Company', inquiry.company],
+    ['Company website', inquiry.company_website || inquiry.companyWebsite || 'Not provided'],
+    ['Country', inquiry.country || 'Not provided'],
+    ['Job title', inquiry.job_title || inquiry.jobTitle || 'Not provided'],
+    ['Company size', `${inquiry.company_size || inquiry.companySize} employees`],
+    ['Department', inquiry.department],
+    ['Expected timeline', inquiry.timeline || 'Exploring'],
+    ['Approximate budget', inquiry.budget || 'Undetermined'],
+    ['Existing tools / stack', inquiry.existing_tools || inquiry.existingTools || 'Not specified'],
+    ['Message', inquiry.message],
+    ['Consent', 'Granted'],
+    ['Received (UTC)', inquiry.created_at],
+    ['Enquiry reference', inquiry.id],
   ];
   const rows = fields.map(([label, value]) => `<tr><th style="text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(label)}</th><td style="padding:10px;border-bottom:1px solid #e5e7eb;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join('');
   return {
     from: { name: 'Flowtivo AI Website', address: from },
     to: CONTACT_RECIPIENT,
     replyTo: { name: singleLine(inquiry.name), address: inquiry.email },
-    subject: `New Flowtivo AI enquiry — ${singleLine(inquiry.company)}`,
+    subject: `New Enterprise Enquiry — ${singleLine(inquiry.company)} (${singleLine(inquiry.company_size || inquiry.companySize)})`,
     messageId: `<flowtivo-enquiry-${inquiry.id}-${inquiry.created_at.replace(/[^0-9]/g, '')}@${from.split('@')[1] || 'flowtivo.local'}>`,
-    text: `New website enquiry\n\n${fields.map(([label, value]) => `${label}: ${value}`).join('\n\n')}\n\nReply to this email to contact the sender.`,
-    html: `<div style="font-family:Arial,sans-serif;color:#172033;max-width:720px"><h1 style="font-size:24px">New Flowtivo AI enquiry</h1><p>A visitor submitted the website message form.</p><table style="width:100%;border-collapse:collapse">${rows}</table><p>Reply to this email to contact the sender.</p></div>`,
+    text: `New website enterprise enquiry\n\n${fields.map(([label, value]) => `${label}: ${value}`).join('\n\n')}\n\nReply to this email to contact the sender.`,
+    html: `<div style="font-family:Arial,sans-serif;color:#172033;max-width:720px"><h1 style="font-size:24px">New Flowtivo AI Enterprise Enquiry</h1><p>A prospective client submitted the enterprise qualification form.</p><table style="width:100%;border-collapse:collapse">${rows}</table><p>Reply to this email to contact the sender.</p></div>`,
     disableFileAccess: true, disableUrlAccess: true,
   };
 }

@@ -1,0 +1,15 @@
+.git
+.env*
+data
+node_modules
+dist
+.seo-build
+.netlify
+*.log
+.DS_Store
+docs
+design
+server/*.test.mjs
+server/testing
+scripts/prepare-logo.py
+strix_runs

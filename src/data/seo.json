@@ -1,6 +1,23 @@
 {
   "/": {
-    "title": "Flowtivo AI \u2014 Less Busywork. More Business.",
-    "description": "Custom AI assistants, workflow automation and AI consulting for mid-market companies with 50\u2013500 employees. No in-house AI team needed."
+    "title": "Enterprise AI Automation Agency & Consulting | Flowtivo AI",
+    "description": "Flowtivo AI delivers custom AI automation, internal knowledge assistants, and enterprise workflow integrations for large organizations. Built around existing systems with human-in-the-loop control."
+  },
+  "/enterprise-ai-automation": {
+    "title": "Enterprise AI Automation & Process Engineering | Flowtivo AI",
+    "description": "Custom enterprise AI workflow automation. Reduce repetitive manual operations, connect legacy systems, and maintain reliable human approvals across departments."
+  },
+  "/enterprise-ai-assistants": {
+    "title": "Enterprise Internal AI Assistants & Knowledge Systems | Flowtivo AI",
+    "description": "Source-grounded internal AI assistants for enterprise teams. Private document retrieval, role-based access controls, and verifiable citations."
+  },
+  "/enterprise-workflow-integration": {
+    "title": "Enterprise Workflow Integration & AI Orchestration | Flowtivo AI",
+    "description": "Connect enterprise applications, eliminate cross-departmental friction, and build observable AI workflows with automated exception handling."
+  },
+  "/booking-confirmed": {
+    "title": "Consultation Confirmed | Flowtivo AI",
+    "description": "Your enterprise AI discovery session is scheduled. Review your meeting agenda, discovery topics, and preparation details.",
+    "noindex": true
   }
 }

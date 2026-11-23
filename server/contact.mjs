@@ -1,14 +1,72 @@
 import { z } from 'zod';
+import site from '../src/data/site.json' with { type:'json' };
+
+export const WEBHOOK_URL = process.env.ENQUIRY_WEBHOOK_URL || 'https://jey.ije.mybluehost.me/webhook/c3e348d2-c233-4d71-b076-b3c57529c961';
+
+export async function forwardToWebhook(data, webhookUrl = WEBHOOK_URL) {
+  if (!webhookUrl) return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+    const payload = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone || '',
+      company: data.company,
+      companyWebsite: data.companyWebsite || '',
+      country: data.country || '',
+      jobTitle: data.jobTitle || '',
+      companySize: data.companySize,
+      department: data.department,
+      message: data.message,
+      existingTools: data.existingTools || '',
+      timeline: data.timeline || '',
+      budget: data.budget || '',
+      consent: true,
+      submittedAt: new Date().toISOString(),
+      source: 'Flowtivo AI Website Enquiry Form',
+      // Convenience aliases for n8n workflows
+      full_name: data.name,
+      work_email: data.email,
+      company_name: data.company,
+      company_website: data.companyWebsite || '',
+      job_title: data.jobTitle || '',
+      company_size: data.companySize,
+      role_of_interest: data.department,
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Flowtivo-AI-LeadForwarder/1.0',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    console.log(`[Webhook] Forwarded enquiry to ${webhookUrl} (status: ${response.status})`);
+  } catch (err) {
+    console.error(`[Webhook] Could not forward to ${webhookUrl}:`, err.message);
+  }
+}
 
 export const inquirySchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(254),
   phone: z.string().trim().max(35).regex(/^[+\d\s().-]*$/).optional().default(''),
   company: z.string().trim().min(2).max(150),
-  companySize: z.enum(['50-100', '100-250', '250-500', '1000+']),
-  department: z.enum(['HR', 'Finance', 'Sales', 'Customer Support', 'Operations', 'Company-wide']),
+  companyWebsite: z.string().trim().max(255).optional().default(''),
+  country: z.string().trim().max(100).optional().default(''),
+  jobTitle: z.string().trim().max(120).optional().default(''),
+  companySize: z.enum(['1-999', '1000-4999', '5000-9999', '10000-49999', '50000+', '50-100', '100-250', '250-500', '1000+']),
+  department: z.string().trim().min(2).max(100),
   message: z.string().trim().min(10).max(4000),
+  existingTools: z.string().trim().max(500).optional().default(''),
+  timeline: z.string().trim().max(50).optional().default('exploring'),
+  budget: z.string().trim().max(50).optional().default('undetermined'),
   website: z.string().max(0).optional(),
+  bot_field: z.string().max(0).optional(),
   consent: z.literal(true),
 });
 
@@ -23,8 +81,8 @@ export function json(response, status, body, headers = {}) {
 
 export function createContactHandler(database, delivery) {
   const insert = database.prepare(`INSERT INTO inquiries
-    (name, email, phone, company, company_size, department, message, consent)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 1)`);
+    (name, email, phone, company, company_website, country, job_title, company_size, department, message, existing_tools, timeline, budget, consent)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
 
   const queue = database.prepare('INSERT INTO email_deliveries (inquiry_id) VALUES (?)');
 
@@ -66,20 +124,36 @@ export function createContactHandler(database, delivery) {
       });
     }
     if (!delivery.ready) {
-      return json(response, 503, { error: 'Message delivery is temporarily unavailable. Please email pvshariharan324@gmail.com directly.' });
+      return json(response, 503, { error: `Message delivery is temporarily unavailable. Please email ${site.email} directly.` });
     }
     const data = parsed.data;
     try {
       database.exec('BEGIN IMMEDIATE');
       try {
-        const result = insert.run(data.name, data.email, data.phone, data.company, data.companySize, data.department, data.message);
+        const result = insert.run(
+          data.name,
+          data.email,
+          data.phone,
+          data.company,
+          data.companyWebsite,
+          data.country,
+          data.jobTitle,
+          data.companySize,
+          data.department,
+          data.message,
+          data.existingTools,
+          data.timeline,
+          data.budget
+        );
         queue.run(result.lastInsertRowid);
         database.exec('COMMIT');
       } catch (error) { database.exec('ROLLBACK'); throw error; }
       delivery.kick();
+      // Forward to external webhook asynchronously
+      void forwardToWebhook(data);
       return json(response, 201, { success: true, message: 'Your enquiry has been received.' });
     } catch {
-      return json(response, 503, { error: 'We could not save your enquiry. Please try again or email pvshariharan324@gmail.com.' });
+      return json(response, 503, { error: `We could not save your enquiry. Please try again or email ${site.email}.` });
     }
   };
 }

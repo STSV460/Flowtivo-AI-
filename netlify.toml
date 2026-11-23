@@ -1,0 +1,77 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["nodemailer"]
+
+[[redirects]]
+  from = "/services"
+  to = "/#services"
+  status = 301
+
+[[redirects]]
+  from = "/solutions"
+  to = "/#solutions"
+  status = 301
+
+[[redirects]]
+  from = "/process"
+  to = "/#process"
+  status = 301
+
+[[redirects]]
+  from = "/pipelines"
+  to = "/#pipelines"
+  status = 301
+
+[[redirects]]
+  from = "/about"
+  to = "/#about"
+  status = 301
+
+[[redirects]]
+  from = "/team"
+  to = "/#about"
+  status = 301
+
+[[redirects]]
+  from = "/projects"
+  to = "/#pipelines"
+  status = 301
+
+[[redirects]]
+  from = "/contact"
+  to = "/#contact"
+  status = 301
+
+[[redirects]]
+  from = "/metrics"
+  to = "/#impact"
+  status = 301
+
+[[redirects]]
+  from = "/tools"
+  to = "/#tools"
+  status = 301
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+
+[[headers]]
+  for = "/404.html"
+  [headers.values]
+    X-Robots-Tag = "noindex"

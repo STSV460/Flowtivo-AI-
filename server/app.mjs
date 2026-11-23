@@ -14,6 +14,7 @@ const types = {
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff',
   '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
 };
 
 export async function createApp({ dev = false, dbPath = './data/flowtivo.sqlite', distDir = './dist', mail } = {}) {
@@ -40,7 +41,7 @@ export async function createApp({ dev = false, dbPath = './data/flowtivo.sqlite'
       if (!entry.isFile()) throw new Error('Not a file');
     } catch {
       if (extname(path)) return json(response, 404, { error: 'Not found.' });
-      file = resolve(root, 'index.html');
+      file = resolve(root, '404.html');
       status = 404;
     }
     response.writeHead(status, {

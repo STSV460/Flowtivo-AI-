@@ -13,6 +13,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/server ./server
 COPY --from=build /app/src/data/seo.json ./src/data/seo.json
+COPY --from=build /app/src/data/site.json ./src/data/site.json
 COPY --from=build /app/src/data/navigation.json ./src/data/navigation.json
 COPY --from=build /app/dist ./dist
 RUN mkdir /data && chown node:node /data

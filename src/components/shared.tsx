@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useAnimationControls, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, ArrowRight, Menu, X, Sparkles, BrainCircuit, Workflow, Compass, ScanLine, Library, Layers, ShieldCheck, ChartNoAxesCombined, Users, Wallet, Headset, Settings2, Mail, Check, ChevronRight, CircleCheck, FileText, Database, MessageSquare, Bell, LockKeyhole, type LucideIcon } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../components/ui/accordion';
 import { brand, email, faqs } from '../data/content';
 import navigation from '../data/navigation.json';
 import { useBooking } from './BookingProvider';
@@ -10,9 +9,25 @@ import { booking } from '../data/booking';
 export { ArrowUpRight, ArrowRight, Sparkles, Check, ChevronRight, CircleCheck, FileText, Database, MessageSquare, Bell, LockKeyhole, Mail };
 const icons:Record<string,LucideIcon>={sparkles:Sparkles,brain:BrainCircuit,workflow:Workflow,compass:Compass,scan:ScanLine,library:Library,layers:Layers,shield:ShieldCheck,chart:ChartNoAxesCombined,users:Users,wallet:Wallet,headset:Headset,settings:Settings2};
 export function Icon({name,size=22}:{name:string,size?:number}) { const Component=icons[name]||Sparkles; return <Component size={size} strokeWidth={1.5}/>; }
-export function Reveal({children,className='',delay=0,immediate=false}:{children:ReactNode,className?:string,delay?:number,immediate?:boolean}) {
+export function Reveal({children,className='',delay=0,immediate=false,id}:{children:ReactNode,className?:string,delay?:number,immediate?:boolean,id?:string}) {
   const reduced=useReducedMotion();
-  return <motion.div className={className} initial={reduced||immediate?false:{opacity:0,y:16}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.08}} transition={{duration:.45,delay}}>{children}</motion.div>;
+  const node=useRef<HTMLDivElement>(null),controls=useAnimationControls();
+  useEffect(()=>{
+    const element=node.current;
+    if(!element)return;
+    if(reduced||immediate){controls.set({opacity:1,y:0});return;}
+    // Initial HTML stays visible. Animate only off-screen content after hydration.
+    if(element.getBoundingClientRect().top<window.innerHeight)return;
+    controls.set({opacity:0,y:16});
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){
+        void controls.start({opacity:1,y:0});observer.disconnect();
+      }
+    },{threshold:.08});
+    observer.observe(element);
+    return()=>observer.disconnect();
+  },[controls,reduced,immediate]);
+  return <motion.div ref={node} id={id} className={className} initial={false} animate={controls} transition={{duration:.45,delay}}>{children}</motion.div>;
 }
 export function Brand({hero=false}:{hero?:boolean}) { return <span className={`brand ${hero?'brand-hero':''}`}><img src={brand.logoPath} alt="Flowtivo AI — Less Busywork. More Business." width={1749} height={355}/></span>; }
 export function CallButton({children,outline=false,className='',onClick}:{children?:ReactNode,outline?:boolean,className?:string,onClick?:()=>void}) {
@@ -57,8 +72,8 @@ export function SectionHeading({eyebrow,title,description,center=false}:{eyebrow
   return <Reveal className={`section-heading ${center?'center':''}`}><span className="eyebrow">{eyebrow}</span><h2>{title}</h2>{description&&<p>{description}</p>}</Reveal>;
 }
 export function FAQ() {
-  return <section id="faq" tabIndex={-1} className="section container faq-section anchor-target"><SectionHeading eyebrow="FAQ" title="Clarity before we build." description="A few things you might want to know before starting."/><Accordion type="single" collapsible className="faq-list">{faqs.map(([question,answer],index)=><AccordionItem value={`faq-${index}`} key={question}><AccordionTrigger>{question}</AccordionTrigger><AccordionContent>{answer}</AccordionContent></AccordionItem>)}</Accordion></section>;
+  return <section id="faq" tabIndex={-1} className="section container faq-section anchor-target"><SectionHeading eyebrow="FAQ" title="Clarity before we build." description="Answers about AI automation, integration and working with Flowtivo AI."/><div className="faq-list">{faqs.map(([question,answer])=><details className="faq-item" data-slot="accordion-item" key={question}><summary data-slot="accordion-trigger"><h3>{question}</h3><ChevronRight size={17} aria-hidden="true"/></summary><div data-slot="accordion-content"><p>{answer}</p></div></details>)}</div></section>;
 }
 export function Footer() {
-  return <footer className="container footer"><div className="footer-top"><div className="footer-brand"><Link to="/#top"><Brand/></Link><p>Practical AI systems.<br/>Built around your business.</p></div><div className="footer-links"><div><span>EXPLORE</span><Link to="/#services">Services</Link><Link to="/#process">Process</Link><Link to="/#impact">Metrics</Link><Link to="/#tools">Tools</Link><Link to="/#pipelines">Flagship solutions</Link><Link to="/#about">About</Link></div><div><span>LET’S TALK</span><Link to="/#contact">Send an enquiry</Link><a href={`mailto:${email}`}>{email}</a><CallButton className="text-booking"/></div></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Flowtivo AI. All rights reserved.</span><a href="#top">Back to top ↑</a></div></footer>;
+  return <footer className="container footer"><div className="footer-top"><div className="footer-brand"><Link to="/#top"><Brand/></Link><p>Enterprise AI systems.<br/>Engineered around your business.</p></div><div className="footer-links"><div><span>SOLUTIONS</span><Link to="/enterprise-ai-automation">Enterprise AI Automation</Link><Link to="/enterprise-ai-assistants">Internal AI Assistants</Link><Link to="/enterprise-workflow-integration">Workflow Integration</Link></div><div><span>EXPLORE</span><Link to="/#services">Services</Link><Link to="/#process">Process</Link><Link to="/#governance">Governance</Link><Link to="/#impact">Metrics</Link><Link to="/#pipelines">Flagship systems</Link><Link to="/#about">About</Link></div><div><span>LET’S TALK</span><Link to="/#contact">Send an enquiry</Link><a href={`mailto:${email}`}>{email}</a><CallButton className="text-booking"/></div></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Flowtivo AI. All rights reserved.</span><a href="#top">Back to top ↑</a></div></footer>;
 }

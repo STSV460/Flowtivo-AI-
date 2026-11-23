@@ -2,7 +2,7 @@
 
 Reference reviewed: https://atomiseai.com/ on 4 November 2026, using the live page and rendered screenshots.
 
-Audience: mid-market business leaders. Primary conversion: existing Fillout demo popup.
+Audience: Enterprise operations, IT, and digital transformation leaders (10,000+ employees primary ICP). Primary conversion: consultation booking and qualified enquiry.
 
 Observed structure: split hero, compact proof, integrations, numbered capability grid, numbered process, detailed pipeline rows, two ways to start, about, FAQ, two-column contact, footer.
 

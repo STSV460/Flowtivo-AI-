@@ -17,7 +17,9 @@ const testMailConfig = { enabled: true, from: 'site@example.test' };
 const testTransport = () => nodemailer.createTransport({ host:'127.0.0.1', port:smtp.port, secure:false, ignoreTLS:true });
 const valid = {
   name: 'Integration Test', email: 'test@example.test', phone: '+91 9000000000',
-  company: 'Example Company', companySize: '1000+', department: 'Operations',
+  company: 'Enterprise Corp', companySize: '10000-49999', department: 'Operations',
+  companyWebsite: 'https://enterprise.example.test', country: 'United States', jobTitle: 'VP of Operations',
+  existingTools: 'Salesforce, SAP, Jira', timeline: '1-3-months', budget: '25k-50k',
   message: 'Temporary integration test: verify standalone contact persistence.',
   website: '', consent: true,
 };
@@ -47,7 +49,7 @@ test('homepage serves SEO without a login redirect', async () => {
     assert.equal(response.status, 200, route);
     assert.equal(response.headers.get('location'), null);
     const html = await response.text();
-    assert.ok(html.includes(`<title>${page.title}</title>`), route);
+    assert.ok(html.includes(`<title>${page.title.replaceAll('&', '&amp;')}</title>`), route);
     assert.ok(html.includes('id="root"'), route);
     assert.ok(!/chatgpt\.site|signin-with-chatgpt|_next\//.test(html), route);
   }
@@ -101,10 +103,13 @@ test('valid enquiry is persisted in a real SQLite file', async () => {
   await app.delivery.flush();
   const reopened = openDatabase(databasePath);
   try {
-    const rows = reopened.prepare('SELECT email, company_size, consent FROM inquiries').all();
+    const rows = reopened.prepare('SELECT email, company_size, company_website, country, job_title, consent FROM inquiries').all();
     assert.equal(rows.length, 1);
     assert.equal(rows[0].email, valid.email);
     assert.equal(rows[0].company_size, valid.companySize);
+    assert.equal(rows[0].company_website, valid.companyWebsite);
+    assert.equal(rows[0].country, valid.country);
+    assert.equal(rows[0].job_title, valid.jobTitle);
     assert.equal(rows[0].consent, 1);
     assert.equal(reopened.prepare('SELECT status FROM email_deliveries').get().status, 'sent');
   } finally { reopened.close(); }
@@ -117,15 +122,30 @@ test('enquiries and private files cannot be read through public routes', async (
   const response = await fetch(base + '/missing-page');
   assert.equal(response.status, 404);
   assert.equal(response.headers.get('x-robots-tag'), 'noindex');
+  const html = await response.text();
+  assert.ok(html.includes('This workflow leads somewhere else.'));
+  assert.ok(!html.includes('rel="canonical"'));
+});
+
+test('discovery files use correct content types and canonical sitemap location', async () => {
+  const response = await fetch(base + '/sitemap.xml');
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /^application\/xml/);
+  assert.ok((await response.text()).includes('<loc>https://flowtivoai.website/</loc>'));
+  const robots = await fetch(base + '/robots.txt');
+  assert.equal(robots.status, 200);
+  assert.match(robots.headers.get('content-type'), /^text\/plain/);
+  assert.ok((await robots.text()).includes('Sitemap: https://flowtivoai.website/sitemap.xml'));
 });
 
 
 test('SMTP notification reaches the fixed recipient with every field and visitor Reply-To', () => {
+  assert.equal(CONTACT_RECIPIENT, 'automation@flowtivoai.website');
   assert.equal(smtp.messages.length, 1);
   const email = smtp.messages[0];
   assert.deepEqual(email.recipients, [CONTACT_RECIPIENT]);
   assert.match(email.body, /Reply-To: Integration Test <test@example.test>/);
-  for (const value of [valid.name, valid.email, valid.phone, valid.company, valid.companySize, valid.department, 'Consent: Granted']) assert.ok(email.body.includes(value), value);
+  for (const value of [valid.name, valid.email, valid.phone, valid.company, valid.companySize, valid.department, valid.companyWebsite, valid.country, valid.jobTitle, 'Consent: Granted']) assert.ok(email.body.includes(value), value);
   assert.ok(email.body.includes('Temporary integration test'));
 });
 

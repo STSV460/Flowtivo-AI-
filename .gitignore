@@ -7,3 +7,7 @@ dist/
 *.log
 .DS_Store
 coverage/
+.seo-build/
+.vercel/
+.netlify/
+strix_runs/

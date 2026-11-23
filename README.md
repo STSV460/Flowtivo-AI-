@@ -2,6 +2,8 @@
 
 A standalone, single-page marketing website built with **React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion and React Router**. The backend is a regular Node.js HTTP server with a local SQLite database. No platform account or visitor login is required.
 
+Public business contact and sole enquiry-notification recipient: **automation@flowtivoai.website**, configured once in `src/data/site.json` and reused by visible contact links, fallback messages, Organization schema and both server mail handlers. Authenticated SMTP sending remains on the existing Gmail account; changing the destination does not change the SMTP username, password or From address. No separate Gmail recipient or CC/BCC is added. Inbox delivery and any forwarding configured at the business-email provider require separate verification.
+
 ## Run locally
 
 Requires Node.js 22.13+; Node.js 24 recommended.
@@ -28,13 +30,15 @@ For hosting on a standard Node server or container, set `HOST=0.0.0.0`, the desi
 HOST=0.0.0.0 PORT=3000 SQLITE_PATH=/persistent-data/flowtivo.sqlite npm start
 ```
 
-For absolute canonical and social sharing URLs, set your real origin before building:
+The canonical domain is configured in `src/data/site.json` as `https://flowtivoai.website`. Update that file if the domain changes. An optional `SITE_URL` must match the configured origin:
 
 ```sh
-SITE_URL=https://your-domain.example npm run build
+SITE_URL=https://flowtivoai.website npm run build
 ```
 
-The homepage includes SEO and Open Graph metadata. Navigation scrolls to sections on the same page. Previous page URLs redirect to the matching homepage anchor, e.g. `/services` → `/#services`. `dist/` can also be served by ordinary static hosting, but contact submissions still need the Node backend at `/api/contact`. The full Node server handles both by default.
+The build pre-renders the actual React homepage, including all services and FAQ answers, then hydrates it for interactive use. It generates absolute canonical/social metadata, Organization/WebSite/WebPage/service JSON-LD, `robots.txt`, a one-URL XML sitemap and a non-indexable `404.html`. The same content is delivered to people and crawlers. FAQ disclosures work without JavaScript. Scroll animations activate after hydration and keep initial HTML visible.
+
+Navigation scrolls to sections on the same page. Previous page URLs redirect to the matching homepage anchor, e.g. `/services` → `/#services`. `dist/` can also be served by ordinary static hosting, but contact submissions still need a backend at `/api/contact`. The full Node server handles both by default. Static hosts must serve `sitemap.xml` as XML, preserve real 404 status codes and configure the legacy redirects.
 
 `.env.example` lists settings. `npm run dev` and `npm start` automatically load private `.env`; credentials remain server-side and are excluded from Git and browser assets.
 
@@ -44,9 +48,12 @@ The homepage includes SEO and Open Graph metadata. Navigation scrolls to section
 npm run typecheck
 npm run build
 npm test
+npm run seo:check
 ```
 
 Integration tests check homepage delivery, legacy-to-section redirects, SEO, assets, validation, cross-origin rejection, real SQLite persistence and private-file isolation. They use a temporary database and remove it after testing.
+
+Pre-launch SEO findings, target search intents and post-launch indexing steps are in `docs/seo-launch-review.md`. These checks verify implementation; they are not a Google ranking prediction or a Core Web Vitals field measurement.
 
 ## Edit content
 
@@ -67,7 +74,7 @@ Engineering metrics display measured website-backend results, their local-test s
 
 `POST /api/contact` validates required fields, email, phone, employee-count choices and consent; it also rejects a filled honeypot, oversized requests and cross-origin submissions. Success is shown only after SQLite saves the enquiry. There is no public endpoint to read enquiries.
 
-Enquiries are stored in the `inquiries` table of `data/flowtivo.sqlite`, which can be opened with a SQLite database client. The database is excluded from Git and web assets. Demo requests go directly to the configured Fillout form. The separate message form saves to SQLite and emails the submitted details to `pvshariharan324@gmail.com`.
+Enquiries are stored in the `inquiries` table of `data/flowtivo.sqlite`, which can be opened with a SQLite database client. The database is excluded from Git and web assets. Demo requests go directly to the configured Fillout form. The separate message form saves to SQLite and emails the submitted details to `automation@flowtivoai.website`.
 
 ## Assets
 
@@ -85,7 +92,7 @@ Split hero → Metrics → Tools → numbered Services → Process → Flagship 
 
 ## Gmail enquiry notifications
 
-New message-form submissions are saved with a durable email job, then sent to **pvshariharan324@gmail.com**. Notifications include name, work email, optional phone, company, employee count, department, message, consent and receipt time. Reply-To is the visitor’s validated work email, so replying in Gmail reaches the sender.
+New message-form submissions are saved with a durable email job, then sent only to **automation@flowtivoai.website**. Notifications include name, work email, optional phone, company, employee count, department, message, consent and receipt time. Reply-To is the visitor’s validated work email, so replying in your mail app reaches the sender.
 
 Configure these server-only values in private `.env`:
 
@@ -112,6 +119,24 @@ The automated tests use a disposable local SMTP server to check the full API →
 The November 2026 layout revision is documented in `design/reference-notes.md`. Flowtivo retains its own services, brand artwork, palette, copy, four delivery stages and three flagship systems. No reference-company results, services, profiles, robot assets or prices are used.
 
 The toolkit lists n8n, Supabase, Retell AI, Bolna AI, Airtable, GitHub, GitLab and Google Workspace, as requested by the owner. `src/data/tools.ts` controls labels and categories. Tool SVG provenance is in `public/tools/README.md`. Contact is directly available in the header navigation.
+
+## Vercel deployment mode
+
+`vercel.json` builds the pre-rendered frontend into `dist/`. `api/contact.mjs` uses the Web-standard Node.js function handler in `server/vercel-contact.mjs`. The standalone SQLite server remains available through `npm start`; Vercel does not run that server or persist its database.
+
+Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` and `MAIL_FROM` as server-only Vercel production environment variables. Enter the app password through the CLI's protected prompt or stdin, never in a command argument, public frontend variable or committed file. `.vercelignore` excludes local `.env` files, enquiry databases, reports and build/dependency output.
+
+On Vercel, the request stays open until SMTP accepts the fixed notification recipient. Delivery failure returns 503; the browser retains the visitor's input for retry. This mode has no local database, durable email queue or background retry worker. SMTP acceptance does not guarantee inbox placement. The UI's dated engineering benchmark explicitly describes the separate standalone implementation and excludes the Vercel function.
+
+The function rejects oversized/malformed JSON, cross-origin requests, invalid fields, missing consent and a filled honeypot. Visitor HTML is escaped, Reply-To is validated and visitors cannot choose the recipient or attachments. A bounded per-instance burst limiter permits five valid send attempts per ten minutes per client address. Vercel overwrites the trusted forwarding header at its edge. This limiter is a secondary safeguard, not a global quota across instances; platform-level rate protection is still needed if abuse spans instances.
+
+Vercel CLI and the official shared MCP endpoint are authenticated for the owner's team. Production deployment, production secrets and domain/DNS changes are on hold at the owner's request. The current team uses Hobby; Vercel's [commercial-use policy](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage) requires Pro or Enterprise for an agency service website. No upgrade or paid purchase was made.
+
+## Security review
+
+Build dependencies and validation were patched to Vite 8.3.6, Zod 4.6.7, esbuild 0.28.2 and source-map-js 1.2.2 after a dependency audit. The post-fix audit reports zero known npm advisories; this is not a guarantee against unknown or application-specific vulnerabilities. Integration checks use disposable local SMTP, never real customer data or external mail.
+
+Strix must inspect a separate, sanitized source snapshot. Its local target mount is writable and can include ignored files, so do not point it at a working directory containing `.env`, databases or account credentials. Scan artifacts are excluded from Git, Docker and Vercel uploads. The task scan uses an isolated Docker profile and ChatGPT subscription authentication; no API key was copied into the website.
 
 ## Reproduce the engineering benchmark
 

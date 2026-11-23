@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist",
+  "functions": { "api/contact.mjs": { "maxDuration": 60 } },
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/services", "destination": "/#services", "statusCode": 301 },
+    { "source": "/solutions", "destination": "/#solutions", "statusCode": 301 },
+    { "source": "/process", "destination": "/#process", "statusCode": 301 },
+    { "source": "/pipelines", "destination": "/#pipelines", "statusCode": 301 },
+    { "source": "/about", "destination": "/#about", "statusCode": 301 },
+    { "source": "/team", "destination": "/#about", "statusCode": 301 },
+    { "source": "/projects", "destination": "/#pipelines", "statusCode": 301 },
+    { "source": "/contact", "destination": "/#contact", "statusCode": 301 },
+    { "source": "/metrics", "destination": "/#impact", "statusCode": 301 },
+    { "source": "/tools", "destination": "/#tools", "statusCode": 301 }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ] },
+    { "source": "/sitemap.xml", "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }] },
+    { "source": "/404", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }
+  ]
+}
