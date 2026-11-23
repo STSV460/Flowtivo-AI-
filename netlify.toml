@@ -11,6 +11,11 @@
   external_node_modules = ["nodemailer"]
 
 [[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
   from = "/services"
   to = "/#services"
   status = 301
